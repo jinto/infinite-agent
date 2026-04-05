@@ -4,3 +4,4 @@ ina-mcp
 .state/
 .omc/
 ref/
+dist/
