@@ -17,7 +17,7 @@ user-invocable: false
 | **plan** | `/ina:plan` | 합의 기반 플래닝 + TDD 태스크 분해 |
 | **build** | `/ina:build` | TASKS.md 태스크 실행 (직접/subagent/team) |
 | **review** | `/ina:review` | 커밋 전 코드 리뷰 + 자동 수정 |
-| **research** | `/ina:research` | 패싯 분해 + 병렬 검색 |
+| **research** | `/ina:research` | 다각도 분해 + 병렬 검색 |
 | **design** | `/ina:design` | UI 구현 + 시각적 검증 |
 | **test** | `/ina:test` | 독립 테스트 실행 + 실패 수정 |
 | **ship** | `/ina:ship` | PR 생성 |

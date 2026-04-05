@@ -1,12 +1,12 @@
 ---
 name: research
-description: 패싯 분해 + 병렬 검색으로 외부 정보 조사 — ina 진행 보고 연동
+description: 다각도 분해 + 병렬 검색으로 외부 정보 조사 — ina 진행 보고 연동
 argument-hint: [research question]
 ---
 
 # Research
 
-질문을 독립 패싯으로 분해하고 병렬 검색하여 소스 인용 포함 종합 보고서를 생성한다.
+질문을 독립 관점으로 분해하고 병렬 검색하여 소스 인용 포함 종합 보고서를 생성한다.
 
 ## 언제 사용
 
@@ -26,28 +26,28 @@ argument-hint: [research question]
 
 ina 데몬에 의해 실행된 경우:
 
-- 패싯 분해 후: `ina_report_progress(in_progress="패싯 N개 병렬 검색 중", remaining="종합")`
-- 종합 시작: `ina_report_progress(in_progress="종합 보고서 작성", completed="패싯 검색")`
+- 다각도 분해 후: `ina_report_progress(in_progress="관점 N개 병렬 검색 중", remaining="종합")`
+- 종합 시작: `ina_report_progress(in_progress="종합 보고서 작성", completed="관점 검색")`
 - 3-strike: `ina_mark_blocked(reason="검색 3회 연속 실패 — 검색어 조정 필요")`
 
 ## 흐름
 
-### >>> Stage 1: 패싯 분해
+### >>> Stage 1: 다각도 분해
 
-질문을 2-5개 독립적인 검색 패싯으로 분해한다.
+질문을 2-5개 독립적인 검색 관점으로 분해한다.
 
 예시: "Next.js vs Remix for our project"
-→ 패싯 1: Next.js 핵심 기능 및 장단점
-→ 패싯 2: Remix 핵심 기능 및 장단점
-→ 패싯 3: 성능 벤치마크 비교
-→ 패싯 4: 커뮤니티 크기 및 생태계
+→ 관점 1: Next.js 핵심 기능 및 장단점
+→ 관점 2: Remix 핵심 기능 및 장단점
+→ 관점 3: 성능 벤치마크 비교
+→ 관점 4: 커뮤니티 크기 및 생태계
 
 ### >>> Stage 2: 병렬 검색
 
-각 패싯을 별도 Agent로 병렬 실행:
+각 관점을 별도 Agent로 병렬 실행:
 
 ```
-Agent(prompt="패싯 N에 대해 조사: ...", description="Research facet N")
+Agent(prompt="관점 N에 대해 조사: ...", description="Research facet N")
 ```
 
 각 Agent는:
@@ -57,8 +57,8 @@ Agent(prompt="패싯 N에 대해 조사: ...", description="Research facet N")
 
 ### >>> Stage 3: 종합
 
-모든 패싯 결과를 종합하여 보고서 작성:
-- 패싯별 핵심 발견
+모든 관점 결과를 종합하여 보고서 작성:
+- 관점별 핵심 발견
 - 비교 테이블 (해당 시)
 - 추천 및 근거
 - 모든 소스 URL 인용

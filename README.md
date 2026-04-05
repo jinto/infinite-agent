@@ -67,7 +67,7 @@ Other Claude Code plugins are **prompt libraries**. ina is **infrastructure**.
 | `plan` | Consensus planning + TDD task breakdown |
 | `build` | Execute tasks (direct / subagent / team) |
 | `review` | Code review + fix-first auto-correction |
-| `research` | Facet decomposition + parallel search |
+| `research` | Multi-angle decomposition + parallel search |
 | `design` | UI implementation + visual verification |
 | `test` | Test runner + failure analysis + fix |
 | `ship` | Create PR with auto-generated summary |
