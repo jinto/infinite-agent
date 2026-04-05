@@ -20,12 +20,12 @@ _잠든 사이, 코드가 완성됩니다._
 curl -sSL https://raw.githubusercontent.com/jinto/infinite-agent/main/install.sh | sh
 source ~/.zshrc  # 또는 새 터미널 열기
 
-# 2. 스킬 설치 (Claude Code에서)
+# 2. 설정 (Claude Code 훅 + MCP)
+ina setup
+
+# 3. 스킬 설치 (Claude Code에서)
 /plugin marketplace add https://github.com/jinto/infinite-agent
 /plugin install ina
-
-# 3. 설정 (Claude Code 훅 + MCP)
-ina setup
 
 # 4. 데몬 시작 (택 1)
 ina install   # 추천: 로그인 시 자동 시작 (macOS launchd)

@@ -20,12 +20,12 @@ _Launch an agent. Go to sleep. Wake up to working code._
 curl -sSL https://raw.githubusercontent.com/jinto/infinite-agent/main/install.sh | sh
 source ~/.zshrc  # or open a new terminal
 
-# 2. Install skills (in Claude Code)
+# 2. Setup (Claude Code hooks + MCP)
+ina setup
+
+# 3. Install skills (in Claude Code)
 /plugin marketplace add https://github.com/jinto/infinite-agent
 /plugin install ina
-
-# 3. Setup (Claude Code hooks + MCP)
-ina setup
 
 # 4. Start daemon (pick one)
 ina install   # recommended: auto-start on login (macOS launchd)
