@@ -8,16 +8,16 @@ Go daemon (process watching, crash recovery, Discord alerts) + 10 Claude Code pl
 
 | Skill | Description |
 |-------|-------------|
-| `/ina:autopilot` | Pipeline orchestrator — think → plan → build → review → commit |
-| `/ina:think` | Idea refinement — technical / business / improve modes + multi-perspective validation |
-| `/ina:plan` | Consensus-based planning + TDD task breakdown |
-| `/ina:build` | Task executor with delegation (direct / subagent / team) |
-| `/ina:review` | Multi-model code review + fix-first auto-correction |
-| `/ina:research` | Facet decomposition + parallel search |
-| `/ina:design` | Framework detection + implementation + visual verification |
-| `/ina:test` | Standalone test runner + failure analysis + root cause fix |
-| `/ina:ship` | PR creation with auto-generated summary |
-| `/ina:guard` | Safety guardrails for unattended execution |
+| `autopilot` | Full pipeline: think → plan → build → review → commit |
+| `think` | Idea → spec (technical / business / improve) |
+| `plan` | Consensus planning + TDD task breakdown |
+| `build` | Execute tasks (direct / subagent / team) |
+| `review` | Code review + fix-first auto-correction |
+| `research` | Facet decomposition + parallel search |
+| `design` | UI implementation + visual verification |
+| `test` | Test runner + failure analysis + fix |
+| `ship` | Create PR with auto-generated summary |
+| `guard` | Safety guardrails for unattended execution |
 
 ## Pipeline
 
