@@ -83,8 +83,8 @@ npx codex exec -C . --full-auto -s read-only -c model_reasoning_effort="xhigh" \
 
 | 판정 | 의미 | autopilot 동작 |
 |------|------|---------------|
-| **CLEAN** | 이슈 없음 | → commit 단계로 진행 |
-| **MECHANICAL FIX** | 기계적 수정 완료, 추가 이슈 없음 | → commit 단계로 진행 |
+| **CLEAN** | 이슈 없음 | → 문서 업데이트 확인 → commit |
+| **MECHANICAL FIX** | 기계적 수정 완료, 추가 이슈 없음 | → 문서 업데이트 확인 → commit |
 | **CODE CHANGE REQUIRED** | 코드 변경 필요 | → execute 단계로 루프백 |
 
 ## autopilot 루프백 프로토콜

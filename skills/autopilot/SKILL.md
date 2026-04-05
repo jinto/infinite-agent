@@ -153,7 +153,12 @@ autopilot 시작
 
 > `ina_report_progress(in_progress="autopilot: commit", completed="think, plan, execute, review")`
 
-1. 업데이트가 필요한 문서가 있으면 수정
+1. 문서 업데이트 확인 — 다음 파일을 읽고 변경사항과 일치하는지 확인:
+   - `CLAUDE.md` — 새 명령/스킬/규칙 반영 필요 여부
+   - `README.md` / `README.ko.md` — 사용법, 설치 방법 변경 여부
+   - `TASKS.md` — 완료 체크박스 `[x]` 처리
+   - 기타 `docs/` 문서 — 변경된 API/구조와 불일치 여부
+   - 불일치 발견 시 수정
 2. **커밋 전 반드시 사용자 허락**
 3. 커밋 완료 후 `.state/pipeline.json` 삭제
 4. `ina_report_progress(in_progress="완료", completed="전체 파이프라인")`

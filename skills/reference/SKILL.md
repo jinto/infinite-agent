@@ -101,7 +101,9 @@ think → plan → build → review → commit
 | think | `/ina:plan` |
 | plan | `/ina:build` |
 | build | `/ina:review` |
-| review (CLEAN) | 커밋 또는 `/ina:ship` |
+| design | `/ina:review` |
+| review (CLEAN) | 문서 업데이트 → 커밋 → `/ina:ship` |
+| review (MECHANICAL FIX) | 문서 업데이트 → 커밋 → `/ina:ship` |
 | review (CODE CHANGE REQUIRED) | `/ina:build` (이슈 수정) |
 | research | `/ina:think` 또는 `/ina:plan` |
 
