@@ -1,0 +1,19 @@
+{
+  "name": "ina-marketplace",
+  "owner": {
+    "name": "Jake Park"
+  },
+  "metadata": {
+    "description": "Infinite Agent — daemon-supervised coding agents that never stop."
+  },
+  "plugins": [
+    {
+      "name": "ina",
+      "source": {
+        "source": "github",
+        "repo": "jinto/infinite-agent"
+      },
+      "description": "10 skills with autopilot pipeline orchestration, crash recovery, and multi-agent coordination."
+    }
+  ]
+}
