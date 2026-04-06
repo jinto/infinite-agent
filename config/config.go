@@ -13,6 +13,15 @@ type Config struct {
 	Daemon   DaemonConfig   `toml:"daemon"`
 	Discord  DiscordConfig  `toml:"discord"`
 	Defaults DefaultsConfig `toml:"defaults"`
+	HUD      HUDConfig      `toml:"hud"`
+}
+
+type HUDConfig struct {
+	Mode string `toml:"mode"` // "compact" (1-line) or "full" (2-line, default)
+}
+
+func (c *HUDConfig) IsCompact() bool {
+	return c.Mode == "compact"
 }
 
 type DaemonConfig struct {
@@ -122,4 +131,22 @@ func Load() (*Config, error) {
 	}
 
 	return cfg, nil
+}
+
+// SetHUDMode updates the HUD mode in config.toml.
+func SetHUDMode(mode string) error {
+	cfg, err := Load()
+	if err != nil {
+		return err
+	}
+	cfg.HUD.Mode = mode
+
+	if err := EnsureDir(); err != nil {
+		return err
+	}
+	data, err := toml.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(ConfigPath(), data, 0600)
 }

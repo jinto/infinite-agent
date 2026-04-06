@@ -38,11 +38,13 @@ autopilot: think → plan → build → review → commit
 
 ## HUD (Statusline)
 
-Claude Code 하단에 context 사용률, 모델, 프로젝트명 표시.
+Claude Code 하단에 프로젝트명과 context 사용률 표시.
 
 - `ina hud on` — HUD 활성화
 - `ina hud off` — HUD 비활성화
-- context 80% 이상 시 hook을 통해 `/compact` 안내 자동 주입
+- `ina hud compact` — 1줄 미니멀 모드
+- `ina hud full` — 1줄 풀 모드 (기본, `│` 구분자)
+- context 80% 이상 시 `/compact` 안내 표시
 
 ## MCP Tools
 
