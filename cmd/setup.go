@@ -61,7 +61,10 @@ var setupCmd = &cobra.Command{
 		// Statusline — ina hud
 		inaPath := findIna()
 		if inaPath != "" {
-			settings["statusline"] = inaPath + " hud"
+			settings["statusLine"] = map[string]interface{}{
+				"type":    "command",
+				"command": inaPath + " hud",
+			}
 			fmt.Printf("Statusline: %s hud\n", inaPath)
 		}
 

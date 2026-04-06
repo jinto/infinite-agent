@@ -6,6 +6,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -102,14 +103,24 @@ func Render(r io.Reader, w io.Writer) error {
 	pct := clamp(int(math.Round(stdin.ContextWindow.UsedPercentage)), 0, 100)
 	sev := classify(pct)
 
-	var parts []string
-	parts = append(parts, renderContextBar(pct, sev, 10))
+	line := renderContextBar(pct, sev, 10)
 
-	if warning := renderWarning(pct); warning != "" {
-		parts = append(parts, warning)
+	var extras []string
+	if stdin.Model != nil && stdin.Model.DisplayName != "" {
+		extras = append(extras, stdin.Model.DisplayName)
+	}
+	if stdin.CWD != "" {
+		extras = append(extras, filepath.Base(stdin.CWD))
+	}
+	if len(extras) > 0 {
+		line += dim + "  ·  " + strings.Join(extras, "  ·  ") + reset
 	}
 
-	fmt.Fprintln(w, strings.Join(parts, "\n"))
+	fmt.Fprintln(w, line)
+
+	if warning := renderWarning(pct); warning != "" {
+		fmt.Fprintln(w, warning)
+	}
 	return nil
 }
 
