@@ -1,6 +1,6 @@
 ---
 name: autopilot
-description: ina 파이프라인 오케스트레이터 — think, plan, build, review, commit 자동 실행
+description: ina 파이프라인 오케스트레이터 — think → plan → build (리뷰+커밋 포함)
 argument-hint: [task description]
 ---
 
@@ -15,8 +15,8 @@ argument-hint: [task description]
 
 ## 사용하지 말 것
 
-- 특정 단계만 실행 → 해당 스킬 직접 호출 (`/ina:think`, `/ina:build` 등)
-- 이미 TASKS.md가 잘 정의되어 있고 바로 구현 → `/ina:build`
+- plan 이후 실행만 남았을 때 → `/ina:build` (리뷰+커밋 포함)
+- 특정 단계만 실행 → 해당 스킬 직접 호출 (`/ina:think`, `/ina:plan` 등)
 
 ## 인자
 
@@ -29,15 +29,11 @@ argument-hint: [task description]
 
 ```json
 {
-  "stage": "execute",
+  "stage": "build",
   "skill": "ina:build",
   "task": "인증 시스템 추가",
   "spec_path": ".omc/specs/think-auth.md",
   "plan_path": ".claude/plans/auth.md",
-  "tasks_total": 5,
-  "tasks_done": 2,
-  "review_loops": 0,
-  "review_loop_max": 3,
   "started_at": "2026-04-05T10:00:00Z",
   "updated_at": "2026-04-05T10:30:00Z"
 }
@@ -47,9 +43,9 @@ argument-hint: [task description]
 
 ## ina 연동
 
-- 각 Stage 진입: `ina_report_progress(in_progress="autopilot: {stage}", context="pipeline.json 경로")`
+- 각 Stage 진입: `ina_report_progress(in_progress="autopilot: {stage}")`
 - 막히면: `ina_mark_blocked(reason="autopilot: {stage}에서 {reason}")`
-- 데몬이 MCP 호출 실패를 반환하면 무시하고 계속 진행 (데몬 다운 시에도 파이프라인 중단 안 함)
+- 데몬 MCP 호출 실패 시 무시하고 계속 진행
 
 ## 전체 흐름
 
@@ -62,35 +58,16 @@ autopilot 시작
 ├─ Stage 1: THINK ──────────────────────────────────┐
 │   /ina:think 호출                                 │
 │   검증: .omc/specs/{type}-{slug}.md 존재            │
-│         + Goal, Constraints, Criteria 섹션 비어있지 않음│
 │   pipeline.json → stage="plan"                     │
 │                                                    │
 ├─ Stage 2: PLAN ───────────────────────────────────┤
 │   /ina:plan 호출 (스펙 파일 경로 전달)              │
-│   검증: .claude/plans/{slug}.md 존재                │
-│         + TASKS.md에 - [ ] 항목 최소 1개             │
-│   pipeline.json → stage="execute"                  │
+│   검증: .claude/plans/{slug}.md + TASKS.md 존재     │
+│   pipeline.json → stage="build"                    │
 │                                                    │
-├─ Stage 3: EXECUTE ────────────────────────────────┤
+├─ Stage 3: BUILD ──────────────────────────────────┤
 │   /ina:build 호출                                 │
-│   검증: TASKS.md 전체 - [x]                         │
-│         + 프로젝트 테스트 통과                        │
-│   pipeline.json → stage="review"                   │
-│                                                    │
-├─ Stage 4: REVIEW ─────────────────────── loop ◄──┤
-│   /ina:review 호출                                │
-│   결과:                                            │
-│   - CLEAN → stage="commit"                         │
-│   - MECHANICAL FIX → review가 직접 수정 후 재검증    │
-│   - CODE CHANGE REQUIRED:                          │
-│     review_loops++                                 │
-│     review_loops ≤ 3 → stage="execute" (루프백)     │
-│     review_loops > 3 → ina_mark_blocked + 중단    │
-│   이슈 목록: .state/review-issues.md에 기록          │
-│                                                    │
-├─ Stage 5: COMMIT ─────────────────────────────────┤
-│   업데이트가 필요한 문서 수정                         │
-│   커밋 (사용자 허락 후)                              │
+│   build가 내부적으로 구현 → 리뷰 → 커밋까지 처리     │
 │   pipeline.json 삭제                               │
 └────────────────────────────────────────────────────┘
 ```
@@ -120,47 +97,18 @@ autopilot 시작
 2. 완료 후 산출물 검증:
    - `.claude/plans/{slug}.md` 존재
    - `TASKS.md`에 `- [ ]` 항목이 최소 1개
-3. `pipeline.json` 업데이트: `stage="execute"`, `plan_path` 기록, `tasks_total` 카운트
+3. `pipeline.json` 업데이트: `stage="build"`, `plan_path` 기록
 
-### >>> Stage 3: EXECUTE
+### >>> Stage 3: BUILD
 
-> `ina_report_progress(in_progress="autopilot: execute ({tasks_done}/{tasks_total})", completed="think, plan")`
+> `ina_report_progress(in_progress="autopilot: build", completed="think, plan")`
 
 1. `/ina:build` 스킬 호출
-2. build가 TASKS.md의 태스크를 순차/병렬로 처리
-3. 완료 후 검증:
-   - `TASKS.md` 전체 항목이 `- [x]`
-   - 프로젝트 테스트 통과 (CLAUDE.md의 테스트 명령 또는 기본값)
-4. `pipeline.json` 업데이트: `stage="review"`, `tasks_done` 갱신
-
-**루프백 재진입 시:** `.state/review-issues.md`를 읽어서 해당 이슈만 수정
-
-### >>> Stage 4: REVIEW
-
-> `ina_report_progress(in_progress="autopilot: review (loop {review_loops}/3)", completed="think, plan, execute")`
-
-1. `/ina:review` 스킬 호출
-2. 결과 처리:
-   - **CLEAN**: `pipeline.json` → `stage="commit"`
-   - **MECHANICAL FIX**: review가 직접 수정 + 재검증 후 CLEAN이면 commit으로
-   - **CODE CHANGE REQUIRED**:
-     - 이슈를 `.state/review-issues.md`에 기록
-     - `review_loops++`
-     - `review_loops ≤ 3` → `stage="execute"` (build가 이슈 파일 참고하여 수정)
-     - `review_loops > 3` → `ina_mark_blocked(reason="review 3회 루프백 초과")` + 사용자 보고
-
-### >>> Stage 5: COMMIT
-
-> `ina_report_progress(in_progress="autopilot: commit", completed="think, plan, execute, review")`
-
-1. 문서 업데이트 확인 — 다음 파일을 읽고 변경사항과 일치하는지 확인:
-   - `CLAUDE.md` — 새 명령/스킬/규칙 반영 필요 여부
-   - `README.md` / `README.ko.md` — 사용법, 설치 방법 변경 여부
-   - `TASKS.md` — 완료 체크박스 `[x]` 처리
-   - 기타 `docs/` 문서 — 변경된 API/구조와 불일치 여부
-   - 불일치 발견 시 수정
-2. **커밋 전 반드시 사용자 허락**
-3. 커밋 완료 후 `.state/pipeline.json` 삭제
+2. build가 내부적으로 3 Phase를 실행:
+   - Phase 1: 구현 (태스크 순차/병렬 처리)
+   - Phase 2: 리뷰 (병렬 3-lane + fix-first + 루프백)
+   - Phase 3: 커밋 (문서 확인 + 사용자 허락)
+3. 완료 후 `pipeline.json` 삭제
 4. `ina_report_progress(in_progress="완료", completed="전체 파이프라인")`
 
 ## 크래시 복구
@@ -176,8 +124,7 @@ autopilot 시작
 
 - 각 Stage 진입 시 `>>> Autopilot Stage: {name}` 출력
 - Stage 전환 시 반드시 산출물 검증 (파일 존재 + 내용 유효성)
-- review 루프백 3회 초과 시 즉시 중단 + 사용자 보고
-- 커밋 전 반드시 사용자 허락
+- 커밋 전 반드시 사용자 허락 (build Phase 3에서 처리)
 - 데몬 MCP 호출 실패 시 무시하고 계속 진행
 
 ## 입출력

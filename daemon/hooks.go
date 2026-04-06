@@ -32,8 +32,13 @@ type hookBlockedPayload struct {
 
 func decodeHook[T any](w http.ResponseWriter, r *http.Request) (T, bool) {
 	var payload T
+	if r.Body == nil {
+		w.WriteHeader(http.StatusOK)
+		return payload, false
+	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		// Hooks are best-effort; return 200 so Claude Code doesn't log errors.
+		w.WriteHeader(http.StatusOK)
 		return payload, false
 	}
 	return payload, true

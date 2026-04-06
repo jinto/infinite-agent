@@ -53,20 +53,20 @@ Other Claude Code plugins are **prompt libraries**. ina is **infrastructure**.
 ## Skills
 
 ```
-  THINK         PLAN          BUILD         REVIEW        SHIP
- ┌──────┐     ┌──────┐     ┌──────┐     ┌──────┐     ┌──────┐
- │ Idea │ ──▶ │ Plan │ ──▶ │ Code │ ──▶ │  QA  │ ──▶ │  PR  │
- │ Spec │     │ Tasks│     │ Test │     │ Fix  │     │ Merge│
- └──────┘     └──────┘     └──────┘     └──────┘     └──────┘
+  THINK         PLAN          BUILD (impl→review→commit)       SHIP
+ ┌──────┐     ┌──────┐     ┌──────────────────────────┐     ┌──────┐
+ │ Idea │ ──▶ │ Plan │ ──▶ │ Code → 3-lane Review     │ ──▶ │  PR  │
+ │ Spec │     │ Tasks│     │ → Fix-first → Commit     │     │ Merge│
+ └──────┘     └──────┘     └──────────────────────────┘     └──────┘
 ```
 
 | Skill | Description |
 |-------|-------------|
-| `autopilot` | Full pipeline: think → plan → build → review → commit |
+| `autopilot` | Full pipeline: think → plan → build |
 | `think` | Idea → spec (technical / business / improve) |
 | `plan` | Consensus planning + TDD task breakdown |
-| `build` | Execute tasks (direct / subagent / team) |
-| `review` | Code review + fix-first auto-correction |
+| `build` | Implement → review → commit in one shot (3-lane review built-in) |
+| `review` | Standalone 3-lane review (adversarial + security + simplify) |
 | `research` | Multi-angle decomposition + parallel search |
 | `design` | UI implementation + visual verification |
 | `test` | Test runner + failure analysis + fix |
@@ -101,7 +101,7 @@ Consensus planning (Planner → Architect → Critic) → TDD task breakdown →
 /ina:build
 ```
 
-Auto-delegates: direct execution for 1 task, subagent parallelism for 2-3, team for 4+.
+Implement → 3-lane review → commit, all in one shot. Auto-delegates: direct for 1 task, subagent for 2-3, team for 4+.
 
 ### "Do everything from scratch"
 
@@ -109,7 +109,7 @@ Auto-delegates: direct execution for 1 task, subagent parallelism for 2-3, team 
 /ina:autopilot Add user authentication with OAuth2
 ```
 
-Full pipeline: think → plan → build → review → commit. Crash-recoverable via `.state/pipeline.json`.
+Full pipeline: think → plan → build (with review + commit). Crash-recoverable via `.state/pipeline.json`.
 
 ### "Review before commit"
 
@@ -117,7 +117,7 @@ Full pipeline: think → plan → build → review → commit. Crash-recoverable
 /ina:review
 ```
 
-External code review (Codex) + fix-first auto-correction + loopback protocol.
+Parallel 3-lane review (adversarial + security + simplify) + fix-first auto-correction.
 
 ### "Run tests and fix failures"
 
@@ -140,9 +140,11 @@ Auto-generates summary from git log/diff + runs tests before PR creation.
 ## Pipeline
 
 ```
-autopilot: think → plan → build → review → commit
-                                    ↑         │
-                                    └─────────┘ (loopback, max 3)
+autopilot: think → plan → build
+                           │
+                           ├─ Phase 1: Implement
+                           ├─ Phase 2: Review (3-lane + fix-first, loopback max 3)
+                           └─ Phase 3: Commit
 ```
 
 **Crash recovery** via `.state/pipeline.json` — the daemon restarts the agent and resumes from the recorded stage.

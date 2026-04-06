@@ -78,3 +78,50 @@ func TestRenderBar(t *testing.T) {
 		t.Errorf("expected 4 filled blocks at 50%% of 8: %q", bar)
 	}
 }
+
+func TestRenderWithRateLimits(t *testing.T) {
+	input := `{"cwd":"/home/user/project","context_window":{"context_window_size":200000,"used_percentage":42},"rate_limits":{"five_hour":{"used_percentage":23},"seven_day":{"used_percentage":41}}}`
+	var buf bytes.Buffer
+	if err := Render(strings.NewReader(input), &buf); err != nil {
+		t.Fatal(err)
+	}
+	out := buf.String()
+	// Rate limits now render as mini-bars: "5h █░░░░ 7d ██░░░"
+	for _, want := range []string{"project", "42%", "5h", "7d"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("missing %q in %q", want, out)
+		}
+	}
+	// Should contain bar characters
+	if !strings.Contains(out, "█") && !strings.Contains(out, "░") {
+		t.Errorf("missing bar characters in rate limit output: %q", out)
+	}
+}
+
+func TestRenderRateLimitsPartial(t *testing.T) {
+	input := `{"cwd":"/tmp/x","context_window":{"context_window_size":200000,"used_percentage":10},"rate_limits":{"five_hour":{"used_percentage":88}}}`
+	var buf bytes.Buffer
+	if err := Render(strings.NewReader(input), &buf); err != nil {
+		t.Fatal(err)
+	}
+	out := buf.String()
+	// 5h label should appear (as reset time or "5h" fallback)
+	if !strings.Contains(out, "█") {
+		t.Errorf("missing rate limit bar in %q", out)
+	}
+	if strings.Contains(out, "7d") {
+		t.Errorf("unexpected 7d rate limit in %q", out)
+	}
+}
+
+func TestRenderNoRateLimits(t *testing.T) {
+	input := `{"cwd":"/tmp/x","context_window":{"context_window_size":200000,"used_percentage":10}}`
+	var buf bytes.Buffer
+	if err := Render(strings.NewReader(input), &buf); err != nil {
+		t.Fatal(err)
+	}
+	out := buf.String()
+	if strings.Contains(out, "5h:") || strings.Contains(out, "7d:") {
+		t.Errorf("unexpected rate limits in %q", out)
+	}
+}

@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // StatuslineStdin is the JSON Claude Code pipes to statusline commands.
@@ -16,6 +17,7 @@ type StatuslineStdin struct {
 	TranscriptPath string         `json:"transcript_path"`
 	Model          *Model         `json:"model"`
 	ContextWindow  *ContextWindow `json:"context_window"`
+	RateLimits     *RateLimits    `json:"rate_limits"`
 }
 
 type Model struct {
@@ -26,6 +28,16 @@ type Model struct {
 type ContextWindow struct {
 	Size           int     `json:"context_window_size"`
 	UsedPercentage float64 `json:"used_percentage"`
+}
+
+type RateLimits struct {
+	FiveHour *RateLimit `json:"five_hour"`
+	SevenDay *RateLimit `json:"seven_day"`
+}
+
+type RateLimit struct {
+	UsedPercentage float64 `json:"used_percentage"`
+	ResetsAt       int64   `json:"resets_at"`
 }
 
 // Thresholds for context severity levels.
@@ -124,7 +136,7 @@ func Render(r io.Reader, w io.Writer) error {
 	sev := classify(pct)
 
 	c := sev.color()
-	ctxBar := renderBar(pct, 8, c)
+	ctxBar := renderBar(pct, 5, c)
 	ctxLabel := ctxBar + " " + c + fmt.Sprintf("%d%%", pct) + reset
 	if pct >= ThresholdCompress {
 		ctxLabel += " " + c + bold + "/compact" + reset
@@ -133,6 +145,9 @@ func Render(r io.Reader, w io.Writer) error {
 	var parts []string
 	if stdin.CWD != "" {
 		parts = append(parts, white+filepath.Base(stdin.CWD)+reset)
+	}
+	if rl := renderRateLimits(stdin.RateLimits); rl != "" {
+		ctxLabel += "  " + rl
 	}
 	parts = append(parts, ctxLabel)
 
@@ -156,6 +171,36 @@ func clamp(v, lo, hi int) int {
 		return hi
 	}
 	return v
+}
+
+func renderRateLimits(rl *RateLimits) string {
+	if rl == nil {
+		return ""
+	}
+	var segments []string
+	if rl.FiveHour != nil {
+		p := clamp(int(math.Round(rl.FiveHour.UsedPercentage)), 0, 100)
+		label := formatResetTime(rl.FiveHour.ResetsAt)
+		c := classify(p).color()
+		segments = append(segments, label+" "+renderBar(p, 5, c))
+	}
+	if rl.SevenDay != nil {
+		p := clamp(int(math.Round(rl.SevenDay.UsedPercentage)), 0, 100)
+		c := classify(p).color()
+		segments = append(segments, "7d "+renderBar(p, 5, c))
+	}
+	if len(segments) == 0 {
+		return ""
+	}
+	return dim + strings.Join(segments, " ") + reset
+}
+
+func formatResetTime(epoch int64) string {
+	if epoch == 0 {
+		return "5h"
+	}
+	t := time.Unix(epoch, 0).Local()
+	return t.Format("15:04")
 }
 
 // ContextPctFile is where the last known context percentage is stored.
