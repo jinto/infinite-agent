@@ -58,6 +58,13 @@ var setupCmd = &cobra.Command{
 		}
 		settings["hooks"] = existingHooks
 
+		// Statusline — ina hud
+		inaPath := findIna()
+		if inaPath != "" {
+			settings["statusline"] = inaPath + " hud"
+			fmt.Printf("Statusline: %s hud\n", inaPath)
+		}
+
 		// Find ina-mcp binary
 		mcpPath := findInfaMCP()
 		if mcpPath != "" {
@@ -92,6 +99,18 @@ var setupCmd = &cobra.Command{
 		fmt.Println("\nRun 'ina daemon' to start receiving events.")
 		return nil
 	},
+}
+
+func findIna() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	real, err := filepath.EvalSymlinks(exe)
+	if err != nil {
+		return exe
+	}
+	return real
 }
 
 func findInfaMCP() string {
