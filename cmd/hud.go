@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jinto/ina/config"
 	"github.com/jinto/ina/hud"
 	"github.com/spf13/cobra"
 )
@@ -43,31 +42,7 @@ var hudOffCmd = &cobra.Command{
 	},
 }
 
-var hudCompactCmd = &cobra.Command{
-	Use:   "compact",
-	Short: "Switch to compact 1-line HUD",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := config.SetHUDMode("compact"); err != nil {
-			return err
-		}
-		fmt.Println("HUD → compact (1-line)")
-		return nil
-	},
-}
-
-var hudFullCmd = &cobra.Command{
-	Use:   "full",
-	Short: "Switch to full 2-line HUD",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := config.SetHUDMode("full"); err != nil {
-			return err
-		}
-		fmt.Println("HUD → full (2-line)")
-		return nil
-	},
-}
-
 func init() {
-	hudCmd.AddCommand(hudOnCmd, hudOffCmd, hudCompactCmd, hudFullCmd)
+	hudCmd.AddCommand(hudOnCmd, hudOffCmd)
 	rootCmd.AddCommand(hudCmd)
 }
