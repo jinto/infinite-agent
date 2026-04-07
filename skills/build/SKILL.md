@@ -74,35 +74,41 @@ Phase 3: 커밋 (문서 확인 → 사용자 허락 → commit)
    - 외부 리뷰/분석 필요 → codex 위임 (Agent)
 ```
 
-### >>> Stage 3: 구현
+### >>> Stage 3: 구현 (RED → GREEN)
 
 > `ina_report_progress(in_progress="구현: {태스크}", context="위임 방식: {method}")`
 
-#### 직접 실행
+`/ina:plan`이 TDD 구조로 분해한 태스크를 그대로 따른다:
 
-- 플랜에 따라 코드 구현
+```
+1. RED   — 의도를 검증하는 실패 테스트 작성 → 실행하여 실패 확인
+2. GREEN — 테스트 통과할 최소 코드 구현
+3. 다음 태스크로 (리팩터는 리뷰 Phase에서)
+```
+
+- 버그 수정 태스크: 반드시 재현 테스트 먼저 (Prove-It Pattern)
+- 설정/문서 등 행위 변경 없는 태스크: 테스트 생략 가능
 - `/ina:guard` 규칙 준수 (위험 명령 차단, blast radius 체크)
 
-#### 서브에이전트 병렬
+#### 위임 시에도 TDD 유지
 
-독립 태스크 2-3개를 **하나의 메시지에서 Agent를 병렬로** 실행:
+서브에이전트/Team에 위임할 때 **RED→GREEN 원칙을 프롬프트에 포함**:
 
 ```
-Agent 1: "TASKS.md의 태스크 A를 구현. 플랜: {plan_excerpt}. 관련 파일: {files}"
-Agent 2: "TASKS.md의 태스크 B를 구현. 플랜: {plan_excerpt}. 관련 파일: {files}"
+Agent: "TASKS.md의 태스크 A를 구현.
+  1) 실패 테스트 먼저 작성  2) 최소 구현으로 통과
+  플랜: {plan_excerpt}. 관련 파일: {files}"
 ```
 
-**컨텍스트 격리 원칙:** 각 에이전트에 플랜 발췌 + 해당 태스크 + 관련 파일만 전달.
+- 2-3개 독립 태스크 → Agent 병렬 (하나의 메시지에서)
+- 4개+ 독립 태스크 → Team
+- **컨텍스트 격리 원칙:** 각 에이전트에 플랜 발췌 + 해당 태스크 + 관련 파일만 전달
 
-#### Team 모드
+### >>> Stage 4: 전체 검증
 
-4개 이상 독립 태스크 시 Team 사용.
+> `ina_report_progress(in_progress="검증: 전체 테스트 스위트")`
 
-### >>> Stage 4: 검증
-
-> `ina_report_progress(in_progress="검증: 테스트 실행")`
-
-1. 프로젝트 테스트 실행 (CLAUDE.md의 테스트 명령 우선)
+1. 전체 테스트 스위트 실행 (CLAUDE.md의 테스트 명령 우선)
 2. 실패 시: 분석 → 수정 → 재실행 (최대 3회)
 3. 3회 내 미해결 시: `ina_mark_blocked` + 사용자 보고
 4. guard 규칙 확인: 변경 파일 수, 테스트 회귀
