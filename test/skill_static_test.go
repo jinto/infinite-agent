@@ -1,6 +1,7 @@
 package test
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -95,6 +96,26 @@ func TestNoStaleReferences(t *testing.T) {
 			if strings.Contains(content, ref) {
 				t.Errorf("skill %q contains stale reference %q", skill, ref)
 			}
+		}
+	}
+}
+
+func TestEvalFixturesExist(t *testing.T) {
+	data, err := os.ReadFile("eval_scenarios.json")
+	if err != nil {
+		t.Skip("eval_scenarios.json not found — eval not configured")
+	}
+	var scenarios []struct {
+		Name    string `json:"name"`
+		Fixture string `json:"fixture"`
+	}
+	if err := json.Unmarshal(data, &scenarios); err != nil {
+		t.Fatalf("parse eval_scenarios.json: %v", err)
+	}
+	for _, sc := range scenarios {
+		path := filepath.Join("..", sc.Fixture)
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			t.Errorf("eval scenario %q: fixture missing: %s", sc.Name, sc.Fixture)
 		}
 	}
 }

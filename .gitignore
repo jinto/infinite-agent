@@ -2,6 +2,6 @@ ina
 ina-mcp
 *.log
 .state/
-.omc/
+.ina/
 ref/
 dist/

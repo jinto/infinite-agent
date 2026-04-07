@@ -72,9 +72,9 @@ Agent(prompt="관점 N에 대해 조사: ...", description="Research facet N")
 
 ## 출력물
 
-- 종합 보고서: `.omc/research/{slug}.md`
+- 종합 보고서: `.ina/research/{slug}.md`
 
 ## 입출력
 
 - **입력**: 자연어 조사 질문
-- **출력**: `.omc/research/{slug}.md`
+- **출력**: `.ina/research/{slug}.md`

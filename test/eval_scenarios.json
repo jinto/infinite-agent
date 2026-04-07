@@ -1,0 +1,57 @@
+[
+  {
+    "name": "review_sql_injection",
+    "skill": "review",
+    "fixture": "test/fixtures/vuln_sql_injection.go",
+    "prompt": "이 코드를 보안 관점에서 리뷰해줘",
+    "timeout_sec": 120,
+    "min_score": 3.0,
+    "rubric": [
+      { "type": "keyword", "check": "SQL injection", "description": "SQL injection 취약점을 식별했는가" },
+      { "type": "keyword", "check": "parameterized", "description": "parameterized query를 언급했는가" },
+      { "type": "judge", "description": "취약점의 severity를 critical 또는 high로 정확히 분류했는가" },
+      { "type": "judge", "description": "3개의 취약 함수(GetUser, DeleteUser, SearchUsers) 중 최소 2개를 식별했는가" }
+    ]
+  },
+  {
+    "name": "review_xss",
+    "skill": "review",
+    "fixture": "test/fixtures/vuln_xss.go",
+    "prompt": "이 코드를 보안 관점에서 리뷰해줘",
+    "timeout_sec": 120,
+    "min_score": 3.0,
+    "rubric": [
+      { "type": "keyword", "check": "XSS", "description": "XSS 취약점을 식별했는가" },
+      { "type": "keyword", "check": "html/template", "description": "html/template 또는 이스케이핑을 언급했는가" },
+      { "type": "judge", "description": "reflected XSS와 stored XSS를 구분했는가" },
+      { "type": "judge", "description": "구체적이고 실행 가능한 수정 방안을 제시했는가" }
+    ]
+  },
+  {
+    "name": "plan_vague_spec",
+    "skill": "plan",
+    "fixture": "test/fixtures/vague_spec.md",
+    "prompt": "이 스펙을 기반으로 구현 플랜을 짜줘",
+    "timeout_sec": 180,
+    "min_score": 2.5,
+    "rubric": [
+      { "type": "keyword", "check": "모호", "description": "스펙의 모호함을 지적했는가" },
+      { "type": "judge", "description": "불완전한 acceptance criteria를 지적하고 보완을 요청했는가" },
+      { "type": "judge", "description": "플랜을 작성하기 전에 추가 정보가 필요하다고 판단했는가" }
+    ]
+  },
+  {
+    "name": "plan_good_spec",
+    "skill": "plan",
+    "fixture": "test/fixtures/good_spec.md",
+    "prompt": "이 스펙을 기반으로 구현 플랜을 짜줘",
+    "timeout_sec": 180,
+    "min_score": 3.0,
+    "rubric": [
+      { "type": "keyword", "check": "TASKS", "description": "태스크 분해를 시도했는가" },
+      { "type": "keyword", "check": "oauth", "description": "OAuth 관련 구현을 다뤘는가" },
+      { "type": "judge", "description": "파일 구조와 핵심 결정을 포함한 구조적 플랜을 제시했는가" },
+      { "type": "judge", "description": "테스트 전략 (단위/통합)을 포함했는가" }
+    ]
+  }
+]

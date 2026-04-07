@@ -90,7 +90,7 @@ ina daemon    # 또는: 포그라운드 실행
 ### "스펙은 있는데 어떻게 만들지 모르겠어요"
 
 ```
-/ina:plan .omc/specs/think-auth.md
+/ina:plan .ina/specs/think-auth.md
 ```
 
 Planner → Architect → Critic이 합의할 때까지 플랜을 다듬고, TDD 태스크로 쪼갭니다.
@@ -184,6 +184,9 @@ go test ./... -count=1 -race
 
 # E2E 스킬 라우팅 테스트 (API 크레딧 소모)
 INFA_E2E=1 go test ./test/ -run TestSkillRouting -v
+
+# LLM-Judge eval — 스킬 품질 검증 (API 크레딧 소모)
+INFA_EVAL=1 go test ./test/ -run TestSkillEval -v -timeout 600s
 ```
 
 ---

@@ -31,11 +31,11 @@ autopilot: think → plan → build
 
 | From | Output Path | To | Input |
 |------|------------|-----|-------|
-| think | `.omc/specs/think-{slug}.md` | plan | 스펙 파일 경로 |
+| think | `.ina/specs/think-{slug}.md` | plan | 스펙 파일 경로 |
 | plan | `.claude/plans/{slug}.md` + `TASKS.md` | build | TASKS.md 체크박스 |
 | build | 커밋된 코드 (구현→리뷰→커밋 내장) | autopilot | 완료 신호 |
 | review | CLEAN / CODE CHANGE REQUIRED | build | 단독 실행 시 |
-| research | `.omc/research/{slug}.md` | think/plan | 참고 자료 |
+| research | `.ina/research/{slug}.md` | think/plan | 참고 자료 |
 | design | 구현된 디자인 코드 | build | Phase 2에서 리뷰 |
 
 ## HUD (Statusline)
@@ -58,6 +58,12 @@ Claude Code 하단에 프로젝트명과 context 사용률 1줄 표시: `project
 go build -o ina .
 go build -o ina-mcp ./mcp/
 go test ./... -count=1 -race
+
+# Tier 2: E2E 스킬 라우팅 (유료)
+INFA_E2E=1 go test ./test/ -run TestSkillRouting -v
+
+# Tier 3: LLM-Judge Eval (유료, pre-push hook으로도 실행)
+INFA_EVAL=1 go test ./test/ -run TestSkillEval -v -timeout 600s
 ```
 
 ## Conventions

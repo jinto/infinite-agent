@@ -57,7 +57,7 @@
   },
   {
     "name": "plan_needed",
-    "input": "이 스펙 파일 기반으로 구현 플랜 짜줘: .omc/specs/think-auth.md",
+    "input": "이 스펙 파일 기반으로 구현 플랜 짜줘: .ina/specs/think-auth.md",
     "expect_skill": "ina:plan",
     "expect_mode": null,
     "description": "플래닝 요청 → plan 스킬"

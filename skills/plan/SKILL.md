@@ -22,7 +22,7 @@ argument-hint: [spec-file-path | description]
 
 ## 인자
 
-- 스펙 파일 경로 (예: `.omc/specs/think-auth.md`)
+- 스펙 파일 경로 (예: `.ina/specs/think-auth.md`)
 - 또는 자연어 설명
 - `--quick`: Phase 1-2 스킵, 바로 태스크 분해만. 사용 시 로그에 "quick 모드: 합의/검증 생략" 기록
 
@@ -141,5 +141,5 @@ Phase 3: TDD 태스크 분해
 
 ## 입출력
 
-- **입력**: `.omc/specs/think-{slug}.md` 또는 자연어
+- **입력**: `.ina/specs/think-{slug}.md` 또는 자연어
 - **출력**: `.claude/plans/{slug}.md` + `TASKS.md` 갱신

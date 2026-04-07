@@ -99,6 +99,9 @@ var setupCmd = &cobra.Command{
 		// Install Context7 MCP if not already configured
 		setupContext7()
 
+		// Install pre-push hook for LLM-Judge eval
+		installPrePushHook()
+
 		fmt.Println("\nRun 'ina daemon' to start receiving events.")
 		return nil
 	},
@@ -149,6 +152,52 @@ func setupContext7() {
 	fmt.Println("done")
 }
 
+
+func installPrePushHook() {
+	// Find project root (git top-level)
+	out, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+	if err != nil {
+		fmt.Println("Pre-push hook: skipped (not a git repo)")
+		return
+	}
+	root := strings.TrimSpace(string(out))
+
+	src := filepath.Join(root, "scripts", "pre-push.sh")
+	if _, err := os.Stat(src); err != nil {
+		fmt.Println("Pre-push hook: skipped (scripts/pre-push.sh not found)")
+		return
+	}
+
+	hooksDir := filepath.Join(root, ".git", "hooks")
+	if err := os.MkdirAll(hooksDir, 0o755); err != nil {
+		fmt.Printf("Pre-push hook: skipped (%v)\n", err)
+		return
+	}
+
+	dst := filepath.Join(hooksDir, "pre-push")
+
+	// Backup existing hook if it's not ours
+	if data, err := os.ReadFile(dst); err == nil {
+		if !strings.Contains(string(data), "ina eval") {
+			backup := dst + ".backup"
+			os.WriteFile(backup, data, 0o755)
+			fmt.Printf("Pre-push hook: backed up existing hook to %s\n", backup)
+		}
+	}
+
+	// Copy hook script
+	data, err := os.ReadFile(src)
+	if err != nil {
+		fmt.Printf("Pre-push hook: skipped (%v)\n", err)
+		return
+	}
+	if err := os.WriteFile(dst, data, 0o755); err != nil {
+		fmt.Printf("Pre-push hook: skipped (%v)\n", err)
+		return
+	}
+
+	fmt.Printf("Pre-push hook: installed → %s\n", dst)
+}
 
 func init() {
 	rootCmd.AddCommand(setupCmd)

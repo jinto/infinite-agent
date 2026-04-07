@@ -90,7 +90,7 @@ Socratic interview → multi-perspective validation (Architect/Critic/CEO) → s
 ### "I have a spec, need a plan"
 
 ```
-/ina:plan .omc/specs/think-auth.md
+/ina:plan .ina/specs/think-auth.md
 ```
 
 Consensus planning (Planner → Architect → Critic) → TDD task breakdown → TASKS.md.
@@ -185,6 +185,9 @@ go test ./... -count=1 -race
 
 # E2E skill routing tests (costs API credits)
 INFA_E2E=1 go test ./test/ -run TestSkillRouting -v
+
+# LLM-Judge eval — skill quality verification (costs API credits)
+INFA_EVAL=1 go test ./test/ -run TestSkillEval -v -timeout 600s
 ```
 
 ---
