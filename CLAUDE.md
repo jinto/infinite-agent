@@ -75,6 +75,7 @@ INFA_EVAL=1 go test ./test/ -run TestSkillEval -v -timeout 600s
 **git tag와 `.claude-plugin/plugin.json`의 version은 반드시 동일해야 한다.**
 
 - 버전을 올릴 때 두 곳을 **항상 함께** 수정할 것
+- 사용자가 태그 생성/푸시를 요청하면, `.claude-plugin/plugin.json` version도 함께 변경할지 반드시 확인할 것
 - pre-push hook이 불일치 시 푸시를 차단하지만, 커밋 단계에서부터 맞춰야 함
 - 태그 형식: `v1.4.0`, plugin.json 형식: `"1.4.0"` (v 접두사 없음)
 
