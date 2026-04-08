@@ -1,6 +1,6 @@
 ---
 name: test
-description: ina 독립 테스트 실행 — 실패 분석, root cause 수정
+description: 독립 테스트 실행 — 실패 분석 + root cause 수정
 argument-hint: [test pattern or path]
 ---
 

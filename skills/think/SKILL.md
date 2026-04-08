@@ -1,6 +1,6 @@
 ---
 name: think
-description: ina 아이디어 구체화 — 기술, 사업, 개선 상황별 인터뷰 + 다관점 검증
+description: 아이디어 구체화 — 기술, 사업, 개선 상황별 인터뷰 + 다관점 검증
 argument-hint: [idea description]
 ---
 

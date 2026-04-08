@@ -1,6 +1,6 @@
 ---
 name: plan
-description: ina 합의 기반 플래닝 + 다관점 검증 + TDD 태스크 분해
+description: 합의 기반 플래닝 + 다관점 검증 + TDD 태스크 분해
 argument-hint: [spec-file-path | description]
 ---
 

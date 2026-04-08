@@ -1,6 +1,6 @@
 ---
 name: guard
-description: ina 무인 실행 안전장치 — 위험 명령 차단, blast radius
+description: 무인 실행 안전장치 — 위험 명령 차단, blast radius
 argument-hint: (자동 적용 — 직접 호출 불필요)
 user-invocable: false
 ---

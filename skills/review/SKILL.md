@@ -1,6 +1,6 @@
 ---
 name: review
-description: 병렬 3-lane 코드 리뷰 (adversarial + security + simplify) + 구조화된 findings + fix-first 자동 수정 + 루프백
+description: 병렬 3-lane 코드 리뷰 + fix-first 자동 수정
 argument-hint: [file-or-diff-target]
 ---
 

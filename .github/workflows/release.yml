@@ -26,7 +26,8 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          go build -ldflags="-s -w" -o ina-${{ matrix.goos }}-${{ matrix.goarch }} .
+          VERSION=${GITHUB_REF_NAME}
+          go build -ldflags="-s -w -X github.com/jinto/ina/cmd.Version=${VERSION}" -o ina-${{ matrix.goos }}-${{ matrix.goarch }} .
           go build -ldflags="-s -w" -o ina-mcp-${{ matrix.goos }}-${{ matrix.goarch }} ./mcp/
 
       - uses: actions/upload-artifact@v4

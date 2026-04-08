@@ -1,6 +1,6 @@
 ---
 name: build
-description: ina 태스크 구현 → 리뷰 → 커밋 (plan 이후 한방 실행기)
+description: 태스크 구현 → 리뷰 → 커밋 (plan 이후 한방 실행기)
 argument-hint: [--no-review]
 ---
 

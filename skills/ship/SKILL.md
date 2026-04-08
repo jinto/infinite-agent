@@ -1,6 +1,6 @@
 ---
 name: ship
-description: ina PR 생성 — 변경 요약 + 테스트 확인
+description: PR 생성 — 변경 요약 + 테스트 확인
 argument-hint: [--draft]
 ---
 

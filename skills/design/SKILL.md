@@ -1,6 +1,6 @@
 ---
 name: design
-description: 프레임워크 감지 + 미적 방향 설정 + 컴포넌트 구현 + 시각적 검증 — ina 진행 보고 연동
+description: 프레임워크 감지 + UI 구현 + 시각적 검증
 argument-hint: [design request]
 ---
 

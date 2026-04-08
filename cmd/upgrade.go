@@ -14,6 +14,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version is set at build time via -ldflags "-X github.com/jinto/ina/cmd.Version=v1.3.0"
+var Version = "dev"
+
 const (
 	repoOwner = "jinto"
 	repoName  = "infinite-angel"
@@ -23,7 +26,7 @@ var upgradeCmd = &cobra.Command{
 	Use:   "upgrade",
 	Short: "Upgrade ina to the latest version",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		current := readLocalVersion()
+		current := currentVersion()
 		fmt.Printf("Current version: %s\n", current)
 
 		latest, err := fetchLatestVersion()
@@ -51,11 +54,15 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Show current ina version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(readLocalVersion())
+		fmt.Println(currentVersion())
 	},
 }
 
-func readLocalVersion() string {
+// currentVersion returns the build-time version, falling back to the file-based version.
+func currentVersion() string {
+	if Version != "dev" {
+		return Version
+	}
 	path := filepath.Join(config.DataDir(), "version")
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -99,7 +106,7 @@ func fetchLatestVersionTimeout(timeout time.Duration) (string, error) {
 // CheckForUpdate checks if a newer version is available and prints a message.
 // Uses a short timeout to avoid blocking interactive commands.
 func CheckForUpdate() {
-	current := readLocalVersion()
+	current := currentVersion()
 	if current == "unknown" {
 		return
 	}

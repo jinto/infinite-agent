@@ -1,6 +1,6 @@
 ---
 name: reference
-description: ina 스킬 카탈로그 + 시나리오별 라우팅 가이드. 스킬 선택이 필요할 때 자동 로딩.
+description: 스킬 카탈로그 + 시나리오별 라우팅 가이드. 스킬 선택이 필요할 때 자동 로딩.
 user-invocable: false
 ---
 

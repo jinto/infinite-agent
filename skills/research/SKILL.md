@@ -1,6 +1,6 @@
 ---
 name: research
-description: 다각도 분해 + 병렬 검색으로 외부 정보 조사 — ina 진행 보고 연동
+description: 다각도 분해 + 병렬 검색으로 외부 정보 조사
 argument-hint: [research question]
 ---
 

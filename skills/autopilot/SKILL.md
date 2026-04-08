@@ -1,6 +1,6 @@
 ---
 name: autopilot
-description: ina 파이프라인 오케스트레이터 — think → plan → build (리뷰+커밋 포함)
+description: 파이프라인 오케스트레이터 — think → plan → build (리뷰+커밋 포함)
 argument-hint: [task description]
 ---
 
