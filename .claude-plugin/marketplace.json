@@ -4,14 +4,14 @@
     "name": "Jake Park"
   },
   "metadata": {
-    "description": "Infinite Agent — daemon-supervised coding agents that never stop."
+    "description": "Infinite Angel — daemon-supervised coding angels that never stop."
   },
   "plugins": [
     {
       "name": "ina",
       "source": {
         "source": "github",
-        "repo": "jinto/infinite-agent"
+        "repo": "jinto/infinite-angel"
       },
       "description": "10 skills with autopilot pipeline orchestration, crash recovery, and multi-agent coordination."
     }

@@ -16,7 +16,7 @@ import (
 
 const (
 	repoOwner = "jinto"
-	repoName  = "infinite-agent"
+	repoName  = "infinite-angel"
 )
 
 var upgradeCmd = &cobra.Command{

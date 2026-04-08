@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-REPO="jinto/infinite-agent"
+REPO="jinto/infinite-angel"
 INSTALL_DIR="${INA_INSTALL_DIR:-$HOME/.ina/bin}"
 # Detect OS and arch
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -61,7 +61,7 @@ case ":$PATH:" in
     if [ -n "$PROFILE" ]; then
       if ! grep -q ".ina/bin" "$PROFILE" 2>/dev/null; then
         echo "" >> "$PROFILE"
-        echo "# ina — Infinite Agent" >> "$PROFILE"
+        echo "# ina — Infinite Angel" >> "$PROFILE"
         echo "$PATH_LINE" >> "$PROFILE"
         echo "  PATH added to ${PROFILE}"
       fi
@@ -93,7 +93,7 @@ fi
 echo "  ina install                        # register daemon (auto-start on login)"
 echo ""
 echo "  # In Claude Code:"
-echo "  /plugin marketplace add https://github.com/jinto/infinite-agent"
+echo "  /plugin marketplace add https://github.com/jinto/infinite-angel"
 echo "  /plugin install ina"
 echo ""
 echo "  # HUD (statusline):"

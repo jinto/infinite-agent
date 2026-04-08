@@ -1,11 +1,11 @@
-# ina — Infinite Agent
+# ina — Infinite Angel
 
 [![Go](https://img.shields.io/badge/Go-1.23-00ADD8?logo=go&logoColor=white)](https://go.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 [English](README.md)
 
-**멈추지 않는 코딩 에이전트.**
+**멈추지 않는 코딩 천사.**
 
 _잠든 사이, 코드가 완성됩니다._
 
@@ -17,14 +17,14 @@ _잠든 사이, 코드가 완성됩니다._
 
 ```bash
 # 1. 설치 (바이너리 + 설정 자동 완료)
-curl -sSL https://raw.githubusercontent.com/jinto/infinite-agent/main/install.sh | sh
+curl -sSL https://raw.githubusercontent.com/jinto/infinite-angel/main/install.sh | sh
 source ~/.zshrc  # 또는 새 터미널 열기
 
 # 2. 데몬 등록 (로그인 시 자동 시작)
 ina install
 
 # 3. 스킬 설치 (Claude Code에서)
-/plugin marketplace add https://github.com/jinto/infinite-agent
+/plugin marketplace add https://github.com/jinto/infinite-angel
 /plugin install ina
 
 # 4. 사용예

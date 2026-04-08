@@ -1,6 +1,6 @@
-# ina — Infinite Agent
+# ina — Infinite Angel
 
-Coding agents that never stop. 에이전트 감시, 재시작, 오케스트레이션 데몬 + 12개 스킬 시스템.
+Coding angels that never stop. 에이전트 감시, 재시작, 오케스트레이션 데몬 + 12개 스킬 시스템.
 
 ## Skills
 

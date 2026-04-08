@@ -1,11 +1,11 @@
-# ina — Infinite Agent
+# ina — Infinite Angel
 
 [![Go](https://img.shields.io/badge/Go-1.23-00ADD8?logo=go&logoColor=white)](https://go.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 [한국어](README.ko.md)
 
-**Daemon-supervised coding agents that never stop.**
+**Daemon-supervised coding angels that never stop.**
 
 _Launch an agent. Go to sleep. Wake up to working code._
 
@@ -17,14 +17,14 @@ _Launch an agent. Go to sleep. Wake up to working code._
 
 ```bash
 # 1. Install (binaries + auto-configuration)
-curl -sSL https://raw.githubusercontent.com/jinto/infinite-agent/main/install.sh | sh
+curl -sSL https://raw.githubusercontent.com/jinto/infinite-angel/main/install.sh | sh
 source ~/.zshrc  # or open a new terminal
 
 # 2. Register daemon (auto-start on login)
 ina install
 
 # 3. Install skills (in Claude Code)
-/plugin marketplace add https://github.com/jinto/infinite-agent
+/plugin marketplace add https://github.com/jinto/infinite-angel
 /plugin install ina
 
 # 4. Example

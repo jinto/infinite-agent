@@ -12,7 +12,7 @@ var cfg *config.Config
 
 var rootCmd = &cobra.Command{
 	Use:   "ina",
-	Short: "Infinite Agent — coding agents that never stop",
+	Short: "Infinite Angel — coding angels that never stop",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		var err error
 		cfg, err = config.Load()

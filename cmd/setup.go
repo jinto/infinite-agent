@@ -64,7 +64,7 @@ var setupCmd = &cobra.Command{
 		if inaPath != "" {
 			fmt.Println()
 			fmt.Println("HUD statusline shows context usage and rate limits at the bottom of Claude Code.")
-			fmt.Println("  Example: infinite-agent │ ██░░░ 38%  03:00 █░░░░  7d ░░░░░")
+			fmt.Println("  Example: infinite-angel │ ██░░░ 38%  03:00 █░░░░  7d ░░░░░")
 			fmt.Print("Enable HUD? [Y/n] ")
 			// Use /dev/tty so the prompt works even when stdin is a pipe (e.g. curl | sh).
 			var reader *bufio.Reader
