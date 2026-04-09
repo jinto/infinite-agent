@@ -43,6 +43,13 @@ FINDING: {severity} | {confidence} | {file}:{line_start}-{line_end}
 
 ## 흐름
 
+### >>> Stage 0: 변경 감지
+
+`git diff HEAD`와 `git diff --cached`를 실행한다. 둘 다 비어있으면 리뷰할 변경이 없다.
+
+- 변경 없음 → **CLEAN — no changes to review.** 출력 후 즉시 종료
+- 변경 있음 → Stage 1로 진행
+
 ### >>> Stage 1: 스펙 준수 확인
 
 > `ina_report_progress(in_progress="스펙 준수 확인", remaining="병렬 리뷰, findings 집계, fix-first, 판정")`
