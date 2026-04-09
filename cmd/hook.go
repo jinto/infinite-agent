@@ -20,9 +20,14 @@ var hookCmd = &cobra.Command{
 	Args:   cobra.ExactArgs(1),
 	Hidden: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		event := args[0]
+		// On session start, check if the binary is behind the plugin cache.
+		if event == "session-start" {
+			checkPluginVersion(os.Stdout)
+		}
 		// Always exit 0 — errors are silently swallowed so Claude Code
 		// never surfaces "hook error" messages to the user.
-		_ = forwardHook(config.SocketPath(), args[0], os.Stdin, defaultHookTimeout)
+		_ = forwardHook(config.SocketPath(), event, os.Stdin, defaultHookTimeout)
 		return nil
 	},
 }

@@ -16,7 +16,7 @@
 - [x] cmd/setup.go에 pre-push hook 설치 추가
 - [x] Tier 1에 fixture 존재 검증 추가
 
-## Hook Resilience ← 현재
+## Hook Resilience
 
 플랜: `.claude/plans/hook-resilience.md`
 분석: `.ina/specs/20260409-0346-rethink-hook-resilience.md`
@@ -53,6 +53,15 @@
 - [x] `go test ./... -count=1 -race` 통과
 - [x] `ina hook post-tool-use` — 데몬 없이 exit 0 확인
 - [ ] `ina setup` → settings.json에 command hook 등록 확인 (배포 후)
+
+## Version Sync Check ← 현재
+
+스펙: `.ina/specs/20260409-1200-think-version-sync-check.md`
+플랜: `.claude/plans/version-sync-check.md`
+
+- [x] Task 1: `maxVersion()` — 디렉토리 목록에서 최고 semver 반환 + 테스트
+- [x] Task 2: `checkPluginVersion()` — 캐시 스캔 → 비교 → stdout 경고 + 테스트 (5개 시나리오)
+- [x] Task 3: `cmd/hook.go` 통합 — session-start 이벤트에 체크 호출 추가
 
 ## Daemon Safety (예정)
 
