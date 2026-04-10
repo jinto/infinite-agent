@@ -32,6 +32,12 @@ const (
 	StateBlocked State = "blocked"
 )
 
+// ExitCodeContextRestart is the exit code an agent uses to request
+// a fresh session due to context pressure. The daemon treats this
+// differently from a crash: it starts a new session with a focused
+// resume prompt instead of using --continue.
+const ExitCodeContextRestart = 42
+
 // Mutable fields are protected by mu; access through getter/setter methods.
 type Agent struct {
 	mu sync.RWMutex `json:"-"`
@@ -43,27 +49,33 @@ type Agent struct {
 	Worktree string `json:"worktree,omitempty"`
 	TaskDesc string `json:"task_desc"`
 
-	pid              int       `json:"-"`
-	state            State     `json:"-"`
-	startedAt        time.Time `json:"-"`
-	lastActive       time.Time `json:"-"`
-	restartCount     int       `json:"-"`
-	lastActiveWindow time.Duration `json:"-"` // minimum interval between lastActive writes
+	pid                 int           `json:"-"`
+	state               State         `json:"-"`
+	startedAt           time.Time     `json:"-"`
+	lastActive          time.Time     `json:"-"`
+	restartCount        int           `json:"-"`
+	contextRestartCount int           `json:"-"` // consecutive context restarts without stage advancement
+	exitCode            int           `json:"-"` // exit code from last process death
+	lastStage           string        `json:"-"` // pipeline stage at last context restart (circuit breaker)
+	lastActiveWindow    time.Duration `json:"-"` // minimum interval between lastActive writes
+	waitDone            chan struct{} `json:"-"` // closed when cmd.Wait() completes and exitCode is set
 }
 
 // Snapshot is a read-only copy safe for serialization and cross-goroutine use.
 type Snapshot struct {
-	ID           string    `json:"id"`
-	Name         string    `json:"name"`
-	Kind         Kind      `json:"kind"`
-	PID          int       `json:"pid"`
-	CWD          string    `json:"cwd"`
-	Worktree     string    `json:"worktree,omitempty"`
-	State        State     `json:"state"`
-	TaskDesc     string    `json:"task_desc"`
-	StartedAt    time.Time `json:"started_at"`
-	LastActive   time.Time `json:"last_active"`
-	RestartCount int       `json:"restart_count"`
+	ID                  string    `json:"id"`
+	Name                string    `json:"name"`
+	Kind                Kind      `json:"kind"`
+	PID                 int       `json:"pid"`
+	CWD                 string    `json:"cwd"`
+	Worktree            string    `json:"worktree,omitempty"`
+	State               State     `json:"state"`
+	TaskDesc            string    `json:"task_desc"`
+	StartedAt           time.Time `json:"started_at"`
+	LastActive          time.Time `json:"last_active"`
+	RestartCount        int       `json:"restart_count"`
+	ContextRestartCount int       `json:"context_restart_count,omitempty"`
+	ExitCode            int       `json:"exit_code,omitempty"`
 }
 
 // DefaultActiveWindow is the minimum interval between lastActive writes.
@@ -142,6 +154,82 @@ func (a *Agent) TouchLastActive(now time.Time) bool {
 	return true
 }
 
+func (a *Agent) ExitCode() int {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+	return a.exitCode
+}
+
+func (a *Agent) SetExitCode(code int) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.exitCode = code
+}
+
+func (a *Agent) ContextRestartCount() int {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+	return a.contextRestartCount
+}
+
+// IncrContextRestarts increments the context restart counter and checks
+// the circuit breaker. If the pipeline stage hasn't advanced since the
+// last context restart, it may indicate the task inherently exceeds one
+// session's context. Returns the new count and whether the stage advanced.
+func (a *Agent) IncrContextRestarts(currentStage string) (count int, stageAdvanced bool) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	stageAdvanced = a.lastStage != "" && a.lastStage != currentStage
+	if stageAdvanced {
+		a.contextRestartCount = 0
+	}
+	a.contextRestartCount++
+	a.lastStage = currentStage
+	return a.contextRestartCount, stageAdvanced
+}
+
+func (a *Agent) ResetContextRestarts() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.contextRestartCount = 0
+	a.lastStage = ""
+}
+
+// InitWaitDone creates the channel that signals cmd.Wait() completion.
+// Must be called before launching the process.
+func (a *Agent) InitWaitDone() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.waitDone = make(chan struct{})
+}
+
+// SignalWaitDone closes the waitDone channel, unblocking WaitForExit.
+func (a *Agent) SignalWaitDone() {
+	a.mu.RLock()
+	ch := a.waitDone
+	a.mu.RUnlock()
+	if ch != nil {
+		close(ch)
+	}
+}
+
+// WaitForExit blocks until cmd.Wait() has set the exit code, or until
+// the timeout elapses. Returns true if the signal was received.
+func (a *Agent) WaitForExit(timeout time.Duration) bool {
+	a.mu.RLock()
+	ch := a.waitDone
+	a.mu.RUnlock()
+	if ch == nil {
+		return false
+	}
+	select {
+	case <-ch:
+		return true
+	case <-time.After(timeout):
+		return false
+	}
+}
+
 func (a *Agent) IncrRestarts() int {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -154,17 +242,19 @@ func (a *Agent) Snapshot() Snapshot {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	return Snapshot{
-		ID:           a.ID,
-		Name:         a.Name,
-		Kind:         a.Kind,
-		PID:          a.pid,
-		CWD:          a.CWD,
-		Worktree:     a.Worktree,
-		State:        a.state,
-		TaskDesc:     a.TaskDesc,
-		StartedAt:    a.startedAt,
-		LastActive:   a.lastActive,
-		RestartCount: a.restartCount,
+		ID:                  a.ID,
+		Name:                a.Name,
+		Kind:                a.Kind,
+		PID:                 a.pid,
+		CWD:                 a.CWD,
+		Worktree:            a.Worktree,
+		State:               a.state,
+		TaskDesc:            a.TaskDesc,
+		StartedAt:           a.startedAt,
+		LastActive:          a.lastActive,
+		RestartCount:        a.restartCount,
+		ContextRestartCount: a.contextRestartCount,
+		ExitCode:            a.exitCode,
 	}
 }
 

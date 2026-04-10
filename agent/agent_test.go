@@ -163,6 +163,67 @@ func TestValidKind(t *testing.T) {
 	}
 }
 
+func TestExitCode(t *testing.T) {
+	a := New("exit", KindClaude, "/tmp", "task")
+
+	if a.ExitCode() != 0 {
+		t.Errorf("ExitCode = %d, want 0", a.ExitCode())
+	}
+
+	a.SetExitCode(ExitCodeContextRestart)
+	if a.ExitCode() != 42 {
+		t.Errorf("ExitCode = %d, want 42", a.ExitCode())
+	}
+
+	snap := a.Snapshot()
+	if snap.ExitCode != 42 {
+		t.Errorf("Snapshot.ExitCode = %d, want 42", snap.ExitCode)
+	}
+}
+
+func TestContextRestartCircuitBreaker(t *testing.T) {
+	a := New("ctx", KindClaude, "/tmp", "task")
+
+	// First context restart at stage "build:review"
+	count, advanced := a.IncrContextRestarts("build:review")
+	if count != 1 || advanced != false {
+		t.Errorf("first: count=%d advanced=%v, want 1/false", count, advanced)
+	}
+
+	// Second at same stage — no advancement
+	count, advanced = a.IncrContextRestarts("build:review")
+	if count != 2 || advanced != false {
+		t.Errorf("second: count=%d advanced=%v, want 2/false", count, advanced)
+	}
+
+	// Third at same stage — circuit breaker should trigger (count > maxContextRestarts)
+	count, advanced = a.IncrContextRestarts("build:review")
+	if count != 3 || advanced != false {
+		t.Errorf("third: count=%d advanced=%v, want 3/false", count, advanced)
+	}
+
+	// Now advance to a new stage — counter resets
+	count, advanced = a.IncrContextRestarts("build:commit")
+	if count != 1 || advanced != true {
+		t.Errorf("advanced: count=%d advanced=%v, want 1/true", count, advanced)
+	}
+}
+
+func TestResetContextRestarts(t *testing.T) {
+	a := New("reset", KindClaude, "/tmp", "task")
+	a.IncrContextRestarts("build")
+	a.IncrContextRestarts("build")
+
+	if a.ContextRestartCount() != 2 {
+		t.Errorf("ContextRestartCount = %d, want 2", a.ContextRestartCount())
+	}
+
+	a.ResetContextRestarts()
+	if a.ContextRestartCount() != 0 {
+		t.Errorf("after reset: ContextRestartCount = %d, want 0", a.ContextRestartCount())
+	}
+}
+
 func TestConcurrentAccess(t *testing.T) {
 	a := New("concurrent", KindClaude, "/tmp", "task")
 	var wg sync.WaitGroup
@@ -174,12 +235,16 @@ func TestConcurrentAccess(t *testing.T) {
 			a.SetState(StateRunning)
 			a.SetPID(i)
 			a.IncrRestarts()
+			a.SetExitCode(i)
+			a.IncrContextRestarts("stage")
 		}()
 		go func() {
 			defer wg.Done()
 			_ = a.Snapshot()
 			_ = a.GetState()
 			_ = a.PID()
+			_ = a.ExitCode()
+			_ = a.ContextRestartCount()
 		}()
 	}
 	wg.Wait()

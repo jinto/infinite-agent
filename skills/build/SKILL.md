@@ -125,9 +125,24 @@ Agent: "TASKS.md의 태스크 A를 구현.
 
 - TASKS.md에서 완료된 항목을 `- [x]`로 변경
 - 다음 미완료 태스크 있으면 → Stage 1로
-- 전부 완료 → Phase 2로 진행
+- 전부 완료 → **Phase 경계 체크포인트** 후 Phase 2로 진행
 - 태스크 10개 초과 처리 시: 사용자에게 "계속 진행할까요?" 확인
 - `--no-review` 시: `.state/review-gate.md` 생성하고 끝
+
+### >>> Phase 경계 체크포인트 (Phase 1 → Phase 2)
+
+> **Phase 전환 전에 반드시 실행한다.**
+
+1. `.state/progress.md`의 `## Context for Restart` 섹션을 **충실히** 작성:
+   - 변경한 파일 목록 (경로 + 변경 요약)
+   - 통과한 테스트 결과
+   - 남은 작업 (Phase 2: 리뷰, Phase 3: 커밋)
+   - 핵심 설계 결정 사항
+2. `pipeline.json` 업데이트: `stage="build"`, `sub_phase="review"`
+3. **context 확인**: HUD 또는 체감으로 context가 높다고 판단되면 (긴 대화, 많은 파일 수정):
+   - 위 체크포인트가 완전한지 재확인
+   - `exit(42)` — daemon이 fresh session으로 Phase 2를 시작함
+   - 확신이 없으면 그냥 Phase 2로 계속 진행 (exit하지 않음)
 
 ---
 
@@ -172,8 +187,18 @@ findings 0개면 → Phase 3으로 직행 (CLEAN).
 ### >>> Stage 10: 재리뷰 루프 (최대 3회)
 
 - 수정이 있었으면 Stage 7로 돌아가 재리뷰
-- CLEAN 시 Phase 3으로
+- CLEAN 시 **Phase 경계 체크포인트** 후 Phase 3으로
 - 3회 후에도 ISSUE → `ina_mark_blocked` + 중단
+
+### >>> Phase 경계 체크포인트 (Phase 2 → Phase 3)
+
+> **Phase 전환 전에 반드시 실행한다.**
+
+1. `.state/progress.md`의 `## Context for Restart` 섹션 업데이트:
+   - 리뷰 결과 요약 (CLEAN / 수정 내역)
+   - 남은 작업 (Phase 3: 문서 확인 + 커밋)
+2. `pipeline.json` 업데이트: `sub_phase="commit"`
+3. **context 확인**: 높으면 `exit(42)`, 아니면 계속 진행
 
 ---
 

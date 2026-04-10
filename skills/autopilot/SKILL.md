@@ -83,7 +83,10 @@ autopilot 시작
    - `.ina/specs/{YYYYMMDD-HHMM}-think-{slug}.md` 존재
    - Goal, Constraints, Acceptance Criteria 섹션이 비어있지 않음
 3. 검증 실패 시: 사용자에게 스펙 보완 요청
-4. `pipeline.json` 업데이트: `stage="plan"`, `spec_path` 기록
+4. **Stage 경계 체크포인트:**
+   - `pipeline.json` 업데이트: `stage="plan"`, `spec_path` 기록
+   - `.state/progress.md`의 `## Context for Restart`에 스펙 파일 경로 기록
+   - context가 높으면 `exit(42)` — daemon이 plan stage부터 fresh session으로 재개
 
 **스킵 조건:**
 - 스펙 파일이 이미 인자로 전달된 경우 → Stage 2로 직행
@@ -97,7 +100,10 @@ autopilot 시작
 2. 완료 후 산출물 검증:
    - `.claude/plans/{slug}.md` 존재
    - `TASKS.md`에 `- [ ]` 항목이 최소 1개
-3. `pipeline.json` 업데이트: `stage="build"`, `plan_path` 기록
+3. **Stage 경계 체크포인트:**
+   - `pipeline.json` 업데이트: `stage="build"`, `plan_path` 기록
+   - `.state/progress.md`의 `## Context for Restart`에 플랜 파일 경로 + 태스크 수 기록
+   - context가 높으면 `exit(42)` — daemon이 build stage부터 fresh session으로 재개
 
 ### >>> Stage 3: BUILD
 
@@ -108,8 +114,9 @@ autopilot 시작
    - Phase 1: 구현 (태스크 순차/병렬 처리)
    - Phase 2: 리뷰 (병렬 3-lane + fix-first + 루프백)
    - Phase 3: 커밋 (문서 확인 + 사용자 허락)
-3. 완료 후 `pipeline.json` 삭제
-4. `ina_report_progress(in_progress="완료", completed="전체 파이프라인")`
+3. build 내부에도 Phase 경계 체크포인트가 있음 (build SKILL.md 참조)
+4. 완료 후 `pipeline.json` 삭제
+5. `ina_report_progress(in_progress="완료", completed="전체 파이프라인")`
 
 ## 크래시 복구
 

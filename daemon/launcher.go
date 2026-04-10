@@ -13,9 +13,15 @@ import (
 
 func (d *Daemon) launchProcess(a *agent.Agent, fresh bool) (int, error) {
 	isRestart := !fresh && a.RestartCount() > 0
+	isContextRestart := fresh && a.ContextRestartCount() > 0
 
 	var prompt string
-	if !isRestart {
+	switch {
+	case isContextRestart:
+		prompt = buildContextResumePrompt(a)
+	case isRestart:
+		// handled below via --continue
+	default:
 		prompt = buildInitialPrompt(a.TaskDesc)
 	}
 
@@ -44,7 +50,7 @@ func (d *Daemon) launchProcess(a *agent.Agent, fresh bool) (int, error) {
 			"--output-format", "stream-json",
 			"--dangerously-skip-permissions",
 		}
-		if isRestart {
+		if isRestart && !isContextRestart {
 			args := append([]string{"--continue"}, baseFlags...)
 			args = append(args, buildResumePrompt(a))
 			cmd = exec.Command(binary, args...)
@@ -67,6 +73,8 @@ func (d *Daemon) launchProcess(a *agent.Agent, fresh bool) (int, error) {
 	cmd.Stdout = logFile
 	cmd.Stderr = logFile
 
+	a.InitWaitDone()
+
 	if err := cmd.Start(); err != nil {
 		logFile.Close()
 		return 0, fmt.Errorf("start process: %w", err)
@@ -74,6 +82,10 @@ func (d *Daemon) launchProcess(a *agent.Agent, fresh bool) (int, error) {
 
 	go func() {
 		cmd.Wait()
+		if cmd.ProcessState != nil {
+			a.SetExitCode(cmd.ProcessState.ExitCode())
+		}
+		a.SignalWaitDone()
 		logFile.Close()
 	}()
 
@@ -102,4 +114,35 @@ Also check .state/progress.md for additional context.
 Continue from the recorded stage — do not restart the pipeline from the beginning.`)
 	}
 	return "Continue from where you left off. Check .state/progress.md for context."
+}
+
+// buildContextResumePrompt creates a focused prompt for context restart sessions.
+// Unlike buildResumePrompt (used with --continue), this is used for fresh sessions
+// where the previous conversation is NOT loaded. The prompt must be self-contained.
+func buildContextResumePrompt(a *agent.Agent) string {
+	return fmt.Sprintf(`You are resuming work after a context restart. The previous session ran out of context window space and exited cleanly after writing a checkpoint.
+
+IMPORTANT: This is a FRESH session. You do NOT have the previous conversation. All context is in the state files below.
+
+## What to do
+
+1. Read .state/pipeline.json — it tells you the current stage and sub-phase
+2. Read .state/progress.md — the "Context for Restart" section has everything the previous session recorded:
+   - What files were changed
+   - What tests passed
+   - What work remains
+   - Key decisions made
+3. Read TASKS.md — check which tasks are done ([x]) and which remain ([ ])
+4. Resume from the recorded stage. Do NOT redo completed work.
+
+## Original task
+
+%s
+
+## Rules
+
+- Maintain .state/progress.md as you work (update "Context for Restart" before each phase boundary)
+- If you approach context limits again, write checkpoint and exit(42) to request another context restart
+- Report progress via ina_report_progress MCP tool
+`, a.TaskDesc)
 }

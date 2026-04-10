@@ -1,7 +1,7 @@
 {
   "name": "ina",
   "description": "Infinite Angel — coding angels that never stop. 12 skills for the full dev lifecycle.",
-  "version": "1.6.1",
+  "version": "1.7.1",
   "skills": "./skills/",
   "author": { "name": "jinto" },
   "license": "MIT"
