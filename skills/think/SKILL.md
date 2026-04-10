@@ -170,10 +170,27 @@ brownfield이면 관련 코드를 먼저 탐색하여 컨텍스트 확보.
 
 ## 실행 브릿지
 
-스펙 완성 후 다음 단계 제안:
-- `/ina:plan` — 합의 기반 플래닝으로 진행 (추천)
-- `/ina:autopilot` — 파이프라인 자동 실행
-- 직접 구현 — 단순한 경우
+스펙 완성 후 사용자에게 다음 단계를 제안한다. autopilot은 `--dangerously-skip-permissions`로 무인 실행되므로 반드시 고지.
+
+**사용자에게 제시:**
+
+> 나머지(plan → build → commit)를 autopilot으로 자동 진행할 수 있습니다.
+> ⚠️ autopilot 에이전트는 권한 확인 없이 자동 실행됩니다.
+>
+> **A.** 이 세션에서 바로 실행 (이 세션은 종료됩니다)
+> **B.** 터미널에서 직접 실행
+> **C.** 수동으로 진행 (`/ina:plan` → `/ina:build`)
+
+**A 선택 시:**
+1. `ina launch . "/ina:autopilot {spec_absolute_path}"` 를 Bash로 실행 — spec 경로는 반드시 절대 경로(`$PWD/.ina/specs/...`)
+2. 실행 확인 후 사용자에게 세션 종료 안내: "에이전트가 시작되었습니다. `ina status`로 진행 상황을 확인하세요."
+
+**B 선택 시:** 명령어만 안내
+```
+ina launch . "/ina:autopilot {spec_absolute_path}"
+```
+
+**C 선택 시:** `/ina:plan` 안내
 
 ## 소프트 리밋
 
