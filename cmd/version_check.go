@@ -108,6 +108,6 @@ func checkPluginVersionIn(cacheDir, current string, w io.Writer) {
 	}
 
 	if compareParts(latestParts, currentParts) > 0 {
-		fmt.Fprintf(w, "ina %s available (binary: %s). Run 'ina upgrade' to update.\n", latest, current)
+		fmt.Fprintf(w, "ina %s available (binary: %s). Offer to run `ina upgrade` — if the user agrees, execute it via Bash.\n", latest, current)
 	}
 }

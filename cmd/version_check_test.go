@@ -80,7 +80,7 @@ func TestCheckPluginVersion(t *testing.T) {
 		cache := makeCache(t, "1.0.0", "1.3.0", "1.4.0")
 		var buf bytes.Buffer
 		checkPluginVersionIn(cache, "v1.2.0", &buf)
-		want := "ina 1.4.0 available (binary: 1.2.0). Run 'ina upgrade' to update.\n"
+		want := "ina 1.4.0 available (binary: 1.2.0). Offer to run `ina upgrade` — if the user agrees, execute it via Bash.\n"
 		if buf.String() != want {
 			t.Errorf("got %q, want %q", buf.String(), want)
 		}
