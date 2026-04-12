@@ -48,6 +48,7 @@ func (d *Daemon) launchProcess(a *agent.Agent, fresh bool) (int, error) {
 	case agent.KindClaude:
 		baseFlags := []string{
 			"--print",
+			"--verbose",
 			"--output-format", "stream-json",
 			"--dangerously-skip-permissions",
 		}
