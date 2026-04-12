@@ -8,9 +8,11 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/jinto/ina/config"
+	"github.com/jinto/ina/daemon"
 	"github.com/spf13/cobra"
 )
 
@@ -48,6 +50,8 @@ var upgradeCmd = &cobra.Command{
 		// Sync cached version files so HUD doesn't show stale upgrade hints.
 		writeLocalVersion(latest)
 		writeLatestVersion(latest)
+
+		restartDaemonAfterUpgrade()
 
 		fmt.Println("Upgrade complete.")
 		return nil
@@ -129,6 +133,47 @@ func writeLatestVersion(version string) {
 	path := filepath.Join(config.DataDir(), "latest_version")
 	os.MkdirAll(filepath.Dir(path), 0700)
 	os.WriteFile(path, []byte(version+"\n"), 0600)
+}
+
+// restartDaemonAfterUpgrade restarts the ina daemon so it picks up the new binary.
+// Uses launchctl if managed by launchd, otherwise stops and re-launches directly.
+func restartDaemonAfterUpgrade() {
+	if _, err := os.Stat(plistPath()); err == nil {
+		// launchd-managed: kickstart -k kills and restarts in one shot.
+		out, err := exec.Command("launchctl", "kickstart", "-k",
+			fmt.Sprintf("gui/%d/%s", os.Getuid(), plistLabel)).CombinedOutput()
+		if err != nil {
+			fmt.Printf("Warning: daemon restart failed: %s\n", strings.TrimSpace(string(out)))
+			return
+		}
+		fmt.Println("Daemon restarted via launchd.")
+		return
+	}
+
+	// Not launchd-managed: try stop + re-launch.
+	if err := daemon.StopRunning(); err != nil {
+		// No daemon running — nothing to restart.
+		return
+	}
+
+	// Brief wait for the old process to exit.
+	time.Sleep(500 * time.Millisecond)
+
+	binPath, err := os.Executable()
+	if err != nil {
+		fmt.Println("Daemon stopped. Restart manually: ina daemon &")
+		return
+	}
+	binPath, _ = filepath.EvalSymlinks(binPath)
+
+	cmd := exec.Command(binPath, "daemon")
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	if err := cmd.Start(); err != nil {
+		fmt.Printf("Daemon stopped but restart failed: %v\nRestart manually: ina daemon &\n", err)
+		return
+	}
+	cmd.Process.Release()
+	fmt.Printf("Daemon restarted (pid=%d).\n", cmd.Process.Pid)
 }
 
 func runInstallScript() error {
