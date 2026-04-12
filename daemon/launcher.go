@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/jinto/ina/agent"
@@ -37,10 +38,10 @@ func (d *Daemon) launchProcess(a *agent.Agent, fresh bool) (int, error) {
 
 	var cmd *exec.Cmd
 
-	binary := string(a.Kind)
-	if _, err := exec.LookPath(binary); err != nil {
+	binary, err := resolveBinary(a.Kind)
+	if err != nil {
 		logFile.Close()
-		return 0, fmt.Errorf("%s binary not found in PATH: %w", binary, err)
+		return 0, fmt.Errorf("launch failed: %w", err)
 	}
 
 	switch a.Kind {
@@ -114,6 +115,43 @@ Also check .state/progress.md for additional context.
 Continue from the recorded stage — do not restart the pipeline from the beginning.`)
 	}
 	return "Continue from where you left off. Check .state/progress.md for context."
+}
+
+// resolveBinary finds the executable for the given agent kind.
+// The ina daemon often runs with a minimal PATH (e.g., launched by launchd),
+// so exec.LookPath alone may miss binaries that exist in the user's shell.
+// Resolution order: env override → PATH → well-known fallback locations.
+func resolveBinary(kind agent.Kind) (string, error) {
+	name := string(kind)
+
+	// 1. Explicit env var override (e.g., INA_CLAUDE_BIN, INA_CODEX_BIN)
+	envKey := "INA_" + strings.ToUpper(name) + "_BIN"
+	if p := os.Getenv(envKey); p != "" {
+		if _, err := os.Stat(p); err == nil {
+			return p, nil
+		}
+	}
+
+	// 2. Standard PATH lookup
+	if p, err := exec.LookPath(name); err == nil {
+		return p, nil
+	}
+
+	// 3. Well-known fallback paths
+	home, _ := os.UserHomeDir()
+	fallbacks := []string{
+		filepath.Join(home, ".local", "bin", name),
+		"/usr/local/bin/" + name,
+		"/opt/homebrew/bin/" + name,
+	}
+	for _, p := range fallbacks {
+		if _, err := os.Stat(p); err == nil {
+			return p, nil
+		}
+	}
+
+	return "", fmt.Errorf("%s binary not found (checked $%s, PATH, and fallback locations: %s)",
+		name, envKey, strings.Join(fallbacks, ", "))
 }
 
 // buildContextResumePrompt creates a focused prompt for context restart sessions.
