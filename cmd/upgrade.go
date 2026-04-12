@@ -138,9 +138,14 @@ func writeLatestVersion(version string) {
 // restartDaemonAfterUpgrade restarts the ina daemon so it picks up the new binary.
 // Uses launchctl if managed by launchd, otherwise stops and re-launches directly.
 func restartDaemonAfterUpgrade() {
+	// Always stop any running daemon first (including manually launched ones)
+	// to free the hook port before launchd starts a new instance.
+	daemon.StopRunning() // ignore error — may not be running
+
 	if _, err := os.Stat(plistPath()); err == nil {
-		// launchd-managed: kickstart -k kills and restarts in one shot.
-		out, err := exec.Command("launchctl", "kickstart", "-k",
+		time.Sleep(500 * time.Millisecond)
+		// launchd-managed: kickstart restarts the service.
+		out, err := exec.Command("launchctl", "kickstart",
 			fmt.Sprintf("gui/%d/%s", os.Getuid(), plistLabel)).CombinedOutput()
 		if err != nil {
 			fmt.Printf("Warning: daemon restart failed: %s\n", strings.TrimSpace(string(out)))
