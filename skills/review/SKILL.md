@@ -1,7 +1,7 @@
 ---
 name: review
 description: 병렬 3-lane 코드 리뷰 + fix-first 자동 수정
-argument-hint: [file-or-diff-target]
+argument-hint: [file-or-diff-target] [--full]
 ---
 
 # Review
@@ -18,6 +18,11 @@ argument-hint: [file-or-diff-target]
 
 - 플랜 리뷰 → `/ina:plan`
 - 아키텍처 리뷰 → 별도 architect agent 사용
+
+## 인자
+
+- (없음): 자동 티어 결정
+- `--full`: 변경 크기와 무관하게 항상 3-lane 전체 리뷰
 
 ## ina 연동
 
@@ -58,13 +63,28 @@ FINDING: {severity} | {confidence} | {file}:{line_start}-{line_end}
 - 현재 변경사항(`git diff`)이 스펙/태스크와 일치하는지 확인
 - 누락된 요구사항이 있으면 목록으로 제시
 
-### >>> Stage 2: 병렬 3-Lane 리뷰
+### >>> Stage 1.5: Lane 티어 결정
 
-> `ina_report_progress(in_progress="병렬 3-lane 리뷰", completed="스펙 확인")`
+변경 파일 수로 리뷰 강도를 결정한다:
 
-**3개 Agent를 동시에 실행한다.** 각 Agent는 독립적으로 `git diff`를 분석하고, 위의 Findings 포맷으로 결과를 반환한다.
+| 변경 파일 수 | 티어 | 실행 Lane |
+|-------------|------|----------|
+| ≤ 3 | **lite** | Simplify만 |
+| 4-10 | **standard** | Security + Simplify |
+| 11+ | **full** | Adversarial + Security + Simplify |
 
-#### Lane A: Adversarial Review (Codex CLI)
+- `--full` 인자 시: 파일 수와 무관하게 항상 full (3-lane)
+- 티어 로그 출력: "Review tier: {tier} ({total_files} files) — {lane_names}"
+
+> `ina_report_progress(in_progress="리뷰 티어 결정: {tier}", completed="스펙 확인")`
+
+### >>> Stage 2: 병렬 리뷰 (티어에 따라 1-3 Lane)
+
+> `ina_report_progress(in_progress="병렬 리뷰 ({tier})", completed="스펙 확인, 티어 결정")`
+
+**Stage 1.5에서 결정된 티어에 따라 해당 Lane만 실행한다.** 각 Agent는 독립적으로 `git diff`를 분석하고, 위의 Findings 포맷으로 결과를 반환한다.
+
+#### Lane A: Adversarial Review (Codex CLI) — full 티어만
 
 Codex CLI로 적대적 리뷰 실행:
 
@@ -97,7 +117,7 @@ codex exec -C . --full-auto -s read-only -c model_reasoning_effort="high" \
 
 **Codex CLI 실패 시 fallback**: Claude Agent (subagent)를 대신 실행하여 동일한 adversarial 관점으로 `git diff`를 리뷰. 결과에 `[degraded: self-review]` 태그를 붙인다.
 
-#### Lane B: Security Review (Agent)
+#### Lane B: Security Review (Agent) — standard + full 티어
 
 Claude Agent를 실행하여 보안 중심 리뷰:
 
@@ -123,7 +143,7 @@ FINDING: {severity} | {confidence 0-1} | {file}:{line_start}-{line_end}
 한국어로 응답.
 ```
 
-#### Lane C: Simplify Review (Agent)
+#### Lane C: Simplify Review (Agent) — 모든 티어
 
 Claude Agent를 실행하여 코드 간결화 리뷰:
 
@@ -153,7 +173,7 @@ FINDING: {severity} | {confidence 0-1} | {file}:{line_start}-{line_end}
 
 > `ina_report_progress(in_progress="findings 집계", completed="스펙 확인, 병렬 리뷰")`
 
-3개 레인의 결과를 합친다:
+실행된 레인의 결과를 합친다:
 
 1. **필터링**: confidence < 0.7 또는 severity == `low` → 제외
 2. **중복 제거**: 동일 파일:라인 범위를 가리키는 findings → severity 높은 쪽 유지
@@ -171,7 +191,7 @@ FINDING: {severity} | {confidence 0-1} | {file}:{line_start}-{line_end}
 | 3 | medium | simplify | util.go:30-35 | 중첩 삼항 연산자 | 0.7 |
 
 Total: 3 findings (1 critical, 1 high, 1 medium)
-Lanes: adversarial ✓ | security ✓ | simplify ✓
+Lanes: adversarial {✓|—} | security {✓|—} | simplify ✓  (tier: {tier})
 ```
 
 findings가 0개면 → Stage 5로 직행 (CLEAN).
@@ -201,6 +221,7 @@ findings가 0개면 → Stage 5로 직행 (CLEAN).
 
 - Stage 4에서 수정이 있었으면 Stage 2로 돌아가 재리뷰
 - CLEAN 판정 시 완료
+- 재리뷰 시 티어는 변경하지 않음 — 초기 결정 유지
 - 3회 반복 후에도 ISSUE 남으면: `ina_mark_blocked` + 남은 이슈 요약
 
 ### >>> Stage 6: 최종 판정

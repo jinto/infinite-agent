@@ -31,7 +31,7 @@ argument-hint: [spec-file-path | description]
 ina 데몬에 의해 실행된 경우:
 
 - Phase 1: `ina_report_progress(in_progress="아키텍처 합의 (시도 N/5)", remaining="다관점 검증, 태스크 분해")`
-- Phase 2: `ina_report_progress(in_progress="다관점 검증", completed="아키텍처 합의")`
+- Phase 2: `ina_report_progress(in_progress="다관점 검증", completed="아키텍처 합의")` — autopilot 시 스킵되면 보고하지 않음
 - Phase 3: `ina_report_progress(in_progress="TDD 태스크 분해", completed="아키텍처 합의, 다관점 검증")`
 - 합의 5회 실패: `ina_mark_blocked(reason="아키텍처 합의 5회 도달 — 핵심 분기점: {issue}")`
 
@@ -40,7 +40,7 @@ ina 데몬에 의해 실행된 경우:
 ```
 Phase 0: 입력 검증
 Phase 1: 아키텍처 합의 (Planner → Architect → Critic, 최대 5회)
-Phase 2: 다관점 검증 (Architect + Critic + CEO 병렬)
+Phase 2: 다관점 검증 (Architect + Critic + CEO 병렬) — autopilot 파이프라인 시 스킵
 Phase 3: TDD 태스크 분해
 ```
 
@@ -81,6 +81,20 @@ Phase 3: TDD 태스크 분해
 - 5회 도달 시: 최선 버전을 사용자에게 제시
 
 ## Phase 2: 다관점 검증
+
+### Autopilot 스킵 조건
+
+`.state/pipeline.json`이 존재하고 `stage == "plan"`이면:
+- Phase 2를 **건너뛴다** — think Phase 2에서 스펙 3관점(Architect + Critic + CEO) 검증 완료
+- 로그: "Phase 2 스킵: autopilot 파이프라인 — think에서 검증 완료"
+- Phase 1 합의 완료 후 바로 Phase 3으로 진행
+
+**스킵하지 않는 경우:**
+- pipeline.json 없음 (standalone `/ina:plan`)
+- stage가 `"plan"`이 아님
+- `--quick` 사용 시 (기존 동작 유지: Phase 1+2 모두 스킵)
+
+### 실행 (standalone 또는 스킵 조건 미충족 시)
 
 합의된 플랜에 대해 3개 Agent를 **하나의 메시지에서 병렬로** 실행:
 

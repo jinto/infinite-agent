@@ -97,6 +97,7 @@ autopilot 시작
 > `ina_report_progress(in_progress="autopilot: plan", completed="think")`
 
 1. `/ina:plan` 스킬 호출 (스펙 파일 경로 전달)
+   - plan은 pipeline.json을 감지하여 Phase 2(다관점 검증)를 자동 스킵 — think에서 검증 완료
 2. 완료 후 산출물 검증:
    - `.claude/plans/{slug}.md` 존재
    - `TASKS.md`에 `- [ ]` 항목이 최소 1개
@@ -112,7 +113,7 @@ autopilot 시작
 1. `/ina:build` 스킬 호출
 2. build가 내부적으로 3 Phase를 실행:
    - Phase 1: 구현 (태스크 순차/병렬 처리)
-   - Phase 2: 리뷰 (병렬 3-lane + fix-first + 루프백)
+   - Phase 2: 리뷰 (티어별 1-3 lane + fix-first + 루프백)
    - Phase 3: 커밋 (문서 확인 + 사용자 허락)
 3. build 내부에도 Phase 경계 체크포인트가 있음 (build SKILL.md 참조)
 4. 완료 후 `pipeline.json` 삭제
